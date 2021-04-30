@@ -8,11 +8,22 @@ namespace DataStores
         {
         }
 
-        public BreadOrderLine(Guid id, int sKU, string? remark, BreadPreferences? breadPreferences) : base(id, GoodsType.Bread, sKU, remark)
+        public BreadOrderLine(Guid id, int sKU, string? remark, BreadPreferences? input) : base(id, GoodsType.Bread, sKU, remark)
         {
-            BreadPreferences = breadPreferences;
+            Input = input;
         }
 
-        public BreadPreferences? BreadPreferences { get; private set; }
+        public BreadPreferences? Input { get; private set; }
+
+        public override Model.OrderLine ToModel()
+        {
+            return new Model.BreadOrderLine()
+            {
+                Id = Id,
+                SKU = SKU,
+                Remark = Remark,
+                Input = Input?.ToModel()
+            };
+        }
     }
 }

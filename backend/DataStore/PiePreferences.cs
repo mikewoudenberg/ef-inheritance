@@ -13,5 +13,21 @@ namespace DataStores
 
         public bool WhippedCream { get; private set; }
         public bool Fruit { get; private set; }
+        public Model.PiePreferences ToModel()
+        {
+            return new Model.PiePreferences()
+            {
+                Fruit = Fruit,
+                WhippedCream = WhippedCream
+            };
+        }
+    }
+
+    public static class PiePreferencesExtensions
+    {
+        public static PiePreferences ToDataContract(this Model.PiePreferences preferences)
+        {
+            return new PiePreferences(preferences.WhippedCream, preferences.Fruit);
+        }
     }
 }

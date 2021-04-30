@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using DataStores;
+using Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ef_issue.Controllers
@@ -9,9 +9,9 @@ namespace ef_issue.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly OrderRepository _orderRepository;
+        private readonly DataStores.OrderRepository _orderRepository;
 
-        public OrderController(OrderRepository orderRepository)
+        public OrderController(DataStores.OrderRepository orderRepository)
         {
             _orderRepository = orderRepository;
         }
@@ -20,7 +20,7 @@ namespace ef_issue.Controllers
         [HttpPost]
         public async Task<ActionResult<Order>> Create()
         {
-            var result = await _orderRepository.CreateOrder(new BreadOrder(Guid.NewGuid(), "Mike", "Here"));
+            var result = await _orderRepository.CreateOrder(new BreadOrder { Id = Guid.NewGuid(), CustomerName = "Mike", CustomerAddress = "Here", OrderLines = new() });
             return Ok(result);
         }
 

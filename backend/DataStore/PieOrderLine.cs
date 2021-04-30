@@ -8,11 +8,22 @@ namespace DataStores
         {
         }
 
-        public PieOrderLine(Guid id, int sKU, string? remark, PiePreferences? piePreferences) : base(id, GoodsType.Pie, sKU, remark)
+        public PieOrderLine(Guid id, int sKU, string? remark, PiePreferences? input) : base(id, GoodsType.Pie, sKU, remark)
         {
-            PiePreference = piePreferences;
+            Input = input;
         }
 
-        public PiePreferences? PiePreference { get; private set; }
+        public PiePreferences? Input { get; private set; }
+
+        public override Model.OrderLine ToModel()
+        {
+            return new Model.PieOrderLine()
+            {
+                Id = Id,
+                SKU = SKU,
+                Remark = Remark,
+                Input = Input?.ToModel()
+            };
+        }
     }
 }

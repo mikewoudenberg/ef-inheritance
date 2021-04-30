@@ -15,7 +15,7 @@ namespace DataStores
             _dbContext = dbContext;
         }
 
-        public Task<Order?> GetOrderById(Guid orderId)
+        public Task<Model.Order?> GetOrderById(Guid orderId)
         {
             var result = _dbContext.Orders
                 .Include(o => o.OrderLines)
@@ -24,10 +24,10 @@ namespace DataStores
             {
                 result = null;
             }
-            return Task.FromResult(result);
+            return Task.FromResult(result?.ToModel());
         }
 
-        public Task<Order> UpdateOrder(Order order)
+        public Task<Model.Order> UpdateOrder(Model.Order order)
         {
             var current = _dbContext.Orders
                 .Include(o => o.OrderLines)
@@ -37,24 +37,24 @@ namespace DataStores
             {
                 throw new ArgumentException($"Cannot update nonexistent order {order.Id}");
             }
-
-            _dbContext.Entry(current).CurrentValues.SetValues(order);
+            var orderDataContract = order.ToDataContract();
+            _dbContext.Entry(current).CurrentValues.SetValues(orderDataContract);
 
             // Order lines are tracked entities so we need to manually sync the collection
-            _dbContext.SyncCollection(current.OrderLines, order.OrderLines, s => s.Id);
+            _dbContext.SyncCollection(current.OrderLines, orderDataContract.OrderLines, s => s.Id);
 
 
             _dbContext.SaveChanges();
 
-            return Task.FromResult(current);
+            return Task.FromResult(current.ToModel());
         }
 
-        public Task<Order> CreateOrder(Order order)
+        public Task<Model.Order> CreateOrder(Model.Order order)
         {
-            var storedOrderData = _dbContext.Orders.Add(order);
+            var storedOrderData = _dbContext.Orders.Add(order.ToDataContract());
             _dbContext.SaveChanges();
 
-            return Task.FromResult(storedOrderData.Entity);
+            return Task.FromResult(storedOrderData.Entity.ToModel());
         }
     }
 }
