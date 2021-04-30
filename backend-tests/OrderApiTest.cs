@@ -26,7 +26,11 @@ namespace backend_tests
                 'id': 'd21b08e4-16f4-4ae9-83db-b1fc7a10c4df',
                 'goodsType': 0,
                 'sKU': 14713499,
-                'remark': 'bring it home'
+                'remark': 'bring it home',
+                'input': {
+                    'wheat': true,
+                    'seeds': false
+                }
             }");
             var orderLines = (JArray)adjustedOrder["orderLines"];
             orderLines.Add(newOrderLine);
@@ -36,6 +40,8 @@ namespace backend_tests
 
             //Assert
             result.EnsureSuccessStatusCode();
+            var returnedOrder = JObject.Parse(await result.Content.ReadAsStringAsync());
+            returnedOrder["orderLines"].Last()["input"].Should().NotBeNull();
             var order = dbContext.Orders.Include(o => o.OrderLines).Single();
             order.OrderLines.Should().HaveCount(orderLines.Count);
             order.OrderLines.Last().As<BreadOrderLine>().Input.Should().NotBeNull();
