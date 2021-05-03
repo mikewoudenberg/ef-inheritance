@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Mime;
@@ -45,6 +46,24 @@ namespace backend_tests
             var order = dbContext.Orders.Include(o => o.OrderLines).Single();
             order.OrderLines.Should().HaveCount(orderLines.Count);
             order.OrderLines.Last().As<BreadOrderLine>().Input.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetOrder_ReturnsStored()
+        {
+            //Arrange
+            var (client, dbContext) = IntegrationTestBootstrapper.Build();
+            var order = new BreadOrder(Guid.NewGuid(), "someone", "here", new() { new BreadOrderLine(Guid.NewGuid(), 12345, "Must be good", new BreadPreferences(true, false)) });
+            dbContext.Orders.Add(order);
+            dbContext.SaveChanges();
+
+            //Act
+            var result = await client.GetAsync($"/order/{order.Id}");
+
+            //Assert
+            result.EnsureSuccessStatusCode();
+            var returnedOrder = JObject.Parse(await result.Content.ReadAsStringAsync());
+            returnedOrder["orderLines"].Last()["input"].Should().NotBeNull();
         }
     }
 }
