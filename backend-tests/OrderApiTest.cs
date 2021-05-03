@@ -113,6 +113,8 @@ namespace backend_tests
                 var line = new BreadOrderLine(new Guid("d21b08e4-16f4-4ae9-83db-b1fc7a10c4df"), 14713499, "bring it home", new BreadPreferences(true, false));
                 order.OrderLines.Add(line);
 
+                // if you swap these two lines it won't work anymore...
+                context.Entry(order).State = EntityState.Modified;
                 context.Attach(line).State = EntityState.Added;
 
                 await context.SaveChangesAsync();
