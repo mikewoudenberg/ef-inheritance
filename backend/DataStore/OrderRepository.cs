@@ -15,23 +15,20 @@ namespace DataStores
             _dbContext = dbContext;
         }
 
-        public Task<Model.Order?> GetOrderById(Guid orderId)
+        public async Task<Model.Order?> GetOrderById(Guid orderId)
         {
-            var result = _dbContext.Orders
+            var result = await _dbContext.Orders
                 .Include(o => o.OrderLines)
-                .SingleOrDefault(o => o.Id == orderId);
-            if (result == default)
-            {
-                result = null;
-            }
-            return Task.FromResult(result?.ToModel());
+                .SingleOrDefaultAsync(o => o.Id == orderId);
+
+            return result?.ToModel();
         }
 
-        public Task<Model.Order> UpdateOrder(Model.Order order)
+        public async Task<Model.Order> UpdateOrder(Model.Order order)
         {
-            var current = _dbContext.Orders
+            var current = await _dbContext.Orders
                 .Include(o => o.OrderLines)
-                .SingleOrDefault(o => o.Id == order.Id);
+                .SingleOrDefaultAsync(o => o.Id == order.Id);
 
             if (current == default)
             {
@@ -41,20 +38,20 @@ namespace DataStores
             _dbContext.Entry(current).CurrentValues.SetValues(orderDataContract);
 
             // Order lines are tracked entities so we need to manually sync the collection
-            _dbContext.SyncCollection(current.OrderLines, orderDataContract.OrderLines, s => s.Id);
+            _dbContext.SyncCollection(current, current.OrderLines, orderDataContract.OrderLines, s => s.Id);
 
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
-            return Task.FromResult(current.ToModel());
+            return current.ToModel();
         }
 
-        public Task<Model.Order> CreateOrder(Model.Order order)
+        public async Task<Model.Order> CreateOrder(Model.Order order)
         {
             var storedOrderData = _dbContext.Orders.Add(order.ToDataContract());
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
-            return Task.FromResult(storedOrderData.Entity.ToModel());
+            return storedOrderData.Entity.ToModel();
         }
     }
 }

@@ -35,17 +35,19 @@ namespace DataStores
 
     public static class DbContextExtensions
     {
-        public static void SyncCollection<T, K>(this ApplicationDbContext dbContext, List<T> stored, List<T> updated, Func<T, K> getId) where K : IEquatable<K>
+        public static void SyncCollection<P, T, K>(this ApplicationDbContext dbContext, P parentObject, List<T> storedItems, List<T> untrackedItems, Func<T, K> getId) where K : IEquatable<K>
         {
-            stored.RemoveAll(storedObject => !updated.Any(updatedObject => getId(storedObject).Equals(getId(updatedObject))));
-            updated.ForEach(updatedObject =>
+            // Remove all stored items that are not present in the untracked collection
+            storedItems.RemoveAll(storedItem => !untrackedItems.Any(untrackedItem => getId(storedItem).Equals(getId(untrackedItem))));
+
+            untrackedItems.ForEach(updatedObject =>
             {
-                var storedObject = stored.SingleOrDefault(specificProduct => getId(updatedObject).Equals(getId(specificProduct)));
+                var storedObject = storedItems.SingleOrDefault(stored => getId(updatedObject).Equals(getId(stored)));
                 if (storedObject == null)
                 {
-                    // Ensure the added entity is seen as added and not tracked already
-                    dbContext.Entry(updatedObject).State = EntityState.Added;
-                    stored.Add(updatedObject);
+                    storedItems.Add(updatedObject);
+                    dbContext.Entry(parentObject).State = EntityState.Modified;
+                    dbContext.Attach(updatedObject).State = EntityState.Added;
                 }
                 else
                 {
